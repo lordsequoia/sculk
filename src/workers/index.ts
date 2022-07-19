@@ -1,2 +1,2 @@
-export * from './mirrorWorker';
-export * from './playersWorker';
+export * from './mirrorSyncWorker';
+export * from './playersLogicWorker';
