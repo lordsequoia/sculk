@@ -1,3 +1,4 @@
+/* eslint-disable functional/no-mixed-type */
 /* eslint-disable functional/no-this-expression */
 /* eslint-disable functional/no-class */
 import { join, resolve } from 'node:path';
@@ -22,7 +23,7 @@ export type SculkWorldOpts = {
   readonly projectName?: string;
   readonly remote: string;
   readonly attachLogic: (world: SculkWorld) => unknown;
-}
+};
 
 export class SculkWorld {
   public readonly rootDir: string;
@@ -35,12 +36,7 @@ export class SculkWorld {
 
   public readonly players: PlayersModule;
 
-  constructor({
-    cwd,
-    projectName,
-    remote,
-    attachLogic,
-  }: SculkWorldOpts) {
+  constructor({ cwd, projectName, remote, attachLogic }: SculkWorldOpts) {
     this.rootDir =
       cwd || resolve(join(homedir(), '.sculk', projectName || 'default'));
 
