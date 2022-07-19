@@ -6,15 +6,15 @@ import { createApi, createStore, Effect, Event, Store } from 'effector';
 import { createEffect } from 'effector';
 import { Except } from 'type-fest';
 
-import { SculkWorld } from '../../build/module/core/world';
 import {
   FileEvent,
   FileWatcher,
   FileWatcherApi,
+  readPlayerDataFile,
   readPlayerStatsFile,
+  SculkWorld,
   stripUuid,
-} from '../helpers/files';
-import { readPlayerDataFile } from '../helpers/files';
+} from '..';
 
 export type Player = {
   readonly id: string;

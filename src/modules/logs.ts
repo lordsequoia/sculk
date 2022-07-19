@@ -1,7 +1,11 @@
 import { createEffect, createEvent, Effect, Event } from 'effector';
 
-import { createFileContentsWatcher, extractServerLog, ServerLog } from '..';
-import { SculkWorld } from '../../build/module/core/world';
+import {
+  createFileContentsWatcher,
+  extractServerLog,
+  SculkWorld,
+  ServerLog,
+} from '..';
 
 export type LogsModuleOpts = {
   readonly rootDir: SculkWorld['rootDir'];
