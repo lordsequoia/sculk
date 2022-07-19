@@ -1,5 +1,4 @@
 import { createEffect, createEvent, Effect, Event } from 'effector';
-import { isMatch } from 'micromatch';
 
 import {
   createFileContentsWatcher,
@@ -55,7 +54,7 @@ export const useLogsModule = ({
 }: LogsModuleOpts): LogsModule => {
   const logsEvents = {
     logsFileDetected: fileDetected.filter({
-      fn: ({ fullPath }) => isMatch(fullPath, '*/logs/latest.log'),
+      fn: ({ path }) => path === 'logs/latest.log',
     }),
   };
   const rawLogsEvents = {
