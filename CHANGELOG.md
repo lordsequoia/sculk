@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.1.1](https://github.com/lordsequoia/sculk-js/compare/v1.1.0...v1.1.1) (2022-07-19)
+
+
+### Bug Fixes
+
+* recursive mkdir for project dir ([3e0a407](https://github.com/lordsequoia/sculk-js/commit/3e0a407aff92702c44c5279a7fd9fcb0a780404c))
+
 ## 1.1.0 (2022-07-19)
 
 
