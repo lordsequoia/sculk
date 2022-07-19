@@ -41,7 +41,7 @@ export class SculkWorld {
       cwd || resolve(join(homedir(), '.sculk', projectName || 'default'));
 
     if (!existsSync(this.rootDir)) {
-      mkdirSync(this.rootDir);
+      mkdirSync(this.rootDir, { recursive: true });
     }
 
     this.watcher = createFileWatcher(this.rootDir, '.');
