@@ -1,11 +1,11 @@
 import { forward } from 'effector';
 
-import { FileWatcherApi } from '../helpers/files';
 import {
-  PlayersModule,
+  FileWatcherApi,
   PlayersStore,
   PlayersStoreEvents,
-} from '../modules/players';
+  SculkWorld,
+} from '..';
 
 export type PlayersLogicWorkerOpts = {
   readonly players: PlayersStore;
@@ -14,27 +14,29 @@ export type PlayersLogicWorkerOpts = {
   readonly playerStatsFileEvents: FileWatcherApi;
 };
 export const createPlayersLogicWorker = ({
-  playerStoreEvents: {
-    playerRemoved,
-    playerUpdated,
-    playerDataLoaded,
-    playerStatsLoaded,
-    playerUserLoaded,
+  players: {
+    playerStoreEvents: {
+      playerRemoved,
+      playerUpdated,
+      playerDataLoaded,
+      playerStatsLoaded,
+      playerUserLoaded,
+    },
+    playerDataFileEvents: {
+      fileDetected: playerDataFileDetected,
+      fileChanged: playerDataFileChanged,
+      fileDeleted: playerDataFileDeleted,
+      fileCreated: playerDataFileCreated,
+    },
+    playerStatsFileEvents: {
+      fileDetected: playerStatsFileDetected,
+      fileChanged: playerStatsFileChanged,
+      fileDeleted: playerStatsFileDeleted,
+      fileCreated: playerStatsFileCreated,
+    },
+    playersEffects: { readPlayerDataFx, readPlayerStatsFx },
   },
-  playerDataFileEvents: {
-    fileDetected: playerDataFileDetected,
-    fileChanged: playerDataFileChanged,
-    fileDeleted: playerDataFileDeleted,
-    fileCreated: playerDataFileCreated,
-  },
-  playerStatsFileEvents: {
-    fileDetected: playerStatsFileDetected,
-    fileChanged: playerStatsFileChanged,
-    fileDeleted: playerStatsFileDeleted,
-    fileCreated: playerStatsFileCreated,
-  },
-  playersEffects: { readPlayerDataFx, readPlayerStatsFx },
-}: PlayersModule) => {
+}: SculkWorld) => {
   forward({ from: playerUserLoaded, to: playerUpdated });
 
   // forward player data updates

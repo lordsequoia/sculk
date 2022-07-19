@@ -11,10 +11,11 @@ import { Stats } from 'fs-extra';
 import { isMatch } from 'micromatch';
 import { splitMap } from 'patronum';
 import * as nbt from 'prismarine-nbt';
-import { fromEvent, map } from 'rxjs';
+import { fromEvent, map, Subject } from 'rxjs';
 import { Except } from 'type-fest';
 
 import { Player, PlayerData, PlayerStats } from '../modules/players';
+import { Tail } from 'tail';
 
 export type FileEvent = {
   path: FileWatcherEvent['filePath'];
@@ -142,6 +143,23 @@ export const createFileWatcher = (
     fileChanged,
     fileDeleted,
     makeApi,
+    stopWatching,
+  };
+};
+
+export const createFileContentsWatcher = (rootDir: string, path: string) => {
+  const tailer = new Tail(join(rootDir, path));
+
+  const subject = new Subject();
+  tailer.on('line', subject.next);
+  tailer.on('error', subject.error);
+
+  const lineAdded = fromObservable<string>(subject);
+
+  const stopWatching = () => tailer.unwatch();
+
+  return {
+    lineAdded,
     stopWatching,
   };
 };

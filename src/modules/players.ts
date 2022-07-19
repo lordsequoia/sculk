@@ -6,6 +6,7 @@ import { createApi, createStore, Effect, Event, Store } from 'effector';
 import { createEffect } from 'effector';
 import { Except } from 'type-fest';
 
+import { SculkWorld } from '../../build/module/core/world';
 import {
   FileEvent,
   FileWatcher,
@@ -161,7 +162,13 @@ export const createPlayersEffects = (): PlayersEffects => {
   };
 };
 
-export const usePlayersModule = (watcher?: FileWatcher): PlayersModule => {
+export type PlayersModuleOpts = {
+  watcher: SculkWorld['watcher'];
+};
+
+export const usePlayersModule = ({
+  watcher,
+}: PlayersModuleOpts): PlayersModule => {
   const $players = createPlayersStore();
   const playerStoreEvents = createPlayersStoreApi($players);
   const playerDataFileEvents = createPlayerDataFileWatcher(watcher);
