@@ -12,10 +12,10 @@ import { isMatch } from 'micromatch';
 import { splitMap } from 'patronum';
 import * as nbt from 'prismarine-nbt';
 import { fromEvent, map, Subject } from 'rxjs';
+import { Tail } from 'tail';
 import { Except } from 'type-fest';
 
 import { Player, PlayerData, PlayerStats } from '../modules/players';
-import { Tail } from 'tail';
 
 export type FileEvent = {
   path: FileWatcherEvent['filePath'];
