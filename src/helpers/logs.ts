@@ -1,4 +1,4 @@
-import { FileEvent } from "./files";
+import { FileEvent } from './files';
 
 export const SERVER_LOG_REGEX = /\[(.*)\] \[(.*)\/(.*)\]: (.*)/m;
 
@@ -31,4 +31,5 @@ export const extractServerLogRegexResult = ([
 export const extractServerLog = (line: string) =>
   extractServerLogRegexResult(execServerLogRegex(line));
 
-export const isLatestLogFile = ({ path }: FileEvent) => path === 'logs/latest.log'
+export const isLatestLogFile = ({ path }: FileEvent) =>
+  path === 'logs/latest.log';

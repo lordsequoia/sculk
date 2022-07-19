@@ -25,7 +25,7 @@ export class SculkWorld {
   public readonly rootDir: string;
   public readonly watcher: FileWatcher;
   public readonly logic: unknown;
-  public readonly mirror: MirrorModule
+  public readonly mirror: MirrorModule;
   public readonly players: PlayersModule;
   public readonly logs: LogsModule;
   public readonly incidents: IncidentsModule;
@@ -44,7 +44,7 @@ export class SculkWorld {
     this.logs = useLogsModule(this);
     this.incidents = useIncidentsModule();
 
-    logger.info(`[SCULK] cwd=${this.rootDir} remote=${remote}`)
+    logger.info(`[SCULK] cwd=${this.rootDir} remote=${remote}`);
 
     this.logic = attachLogic(this);
   }
@@ -52,9 +52,9 @@ export class SculkWorld {
   start() {
     logger.info(`starting sculk for world: ${this.rootDir}`);
 
-    this.mirror.applyMirrorLogicFx(this)
-    this.players.applyPlayersLogicFx(this)
-    this.logs.applyLogsLogicFx(this)
-    this.incidents.applyIncidentsLogicFx(this)
+    this.mirror.applyMirrorLogicFx(this);
+    this.players.applyPlayersLogicFx(this);
+    this.logs.applyLogsLogicFx(this);
+    this.incidents.applyIncidentsLogicFx(this);
   }
 }

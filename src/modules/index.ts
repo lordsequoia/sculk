@@ -1,4 +1,4 @@
 export * from './players';
 export * from './logs';
-export * from './mirror'
-export * from './incidents'
+export * from './mirror';
+export * from './incidents';

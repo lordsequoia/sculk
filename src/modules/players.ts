@@ -1,6 +1,13 @@
 /* eslint-disable functional/prefer-readonly-type */
 
-import { createApi, createStore, Effect, Event, forward, Store } from 'effector';
+import {
+  createApi,
+  createStore,
+  Effect,
+  Event,
+  forward,
+  Store,
+} from 'effector';
 import { createEffect } from 'effector';
 import { Except } from 'type-fest';
 
@@ -60,21 +67,27 @@ export type PlayersModule = {
   readonly playerUserLoaded: Event<PlayerUserLoadedDone>;
   readonly playerDataLoaded: Event<PlayerDataLoadedDone>;
   readonly playerStatsLoaded: Event<PlayerStatsLoadedDone>;
-  readonly readPlayerDataFx: Effect<FileEvent, Except<Player, 'stats' | 'user'>>;
-  readonly readPlayerStatsFx: Effect<FileEvent, Except<Player, 'data' | 'user'>>;
+  readonly readPlayerDataFx: Effect<
+    FileEvent,
+    Except<Player, 'stats' | 'user'>
+  >;
+  readonly readPlayerStatsFx: Effect<
+    FileEvent,
+    Except<Player, 'data' | 'user'>
+  >;
 
-  readonly playerDataFileDetected: Event<FileEvent>
-  readonly playerDataFileCreated: Event<FileEvent>
-  readonly playerDataFileChanged: Event<FileEvent>
-  readonly playerDataFileDeleted: Event<FileEvent>
+  readonly playerDataFileDetected: Event<FileEvent>;
+  readonly playerDataFileCreated: Event<FileEvent>;
+  readonly playerDataFileChanged: Event<FileEvent>;
+  readonly playerDataFileDeleted: Event<FileEvent>;
 
-  readonly playerStatsFileDetected: Event<FileEvent>
-  readonly playerStatsFileCreated: Event<FileEvent>
-  readonly playerStatsFileChanged: Event<FileEvent>
-  readonly playerStatsFileDeleted: Event<FileEvent>
+  readonly playerStatsFileDetected: Event<FileEvent>;
+  readonly playerStatsFileCreated: Event<FileEvent>;
+  readonly playerStatsFileChanged: Event<FileEvent>;
+  readonly playerStatsFileDeleted: Event<FileEvent>;
 
-  readonly applyPlayersLogicFx: Effect<SculkWorld, void>
-}
+  readonly applyPlayersLogicFx: Effect<SculkWorld, void>;
+};
 
 export const usePlayersModule = (world: SculkWorld): PlayersModule => {
   const $players = createStore<Player[]>([] as Player[]);
@@ -103,14 +116,14 @@ export const usePlayersModule = (world: SculkWorld): PlayersModule => {
     fileChanged: playerDataFileChanged,
     fileDeleted: playerDataFileDeleted,
     fileCreated: playerDataFileCreated,
-  } = world.watcher.makeApi('*/playerdata/*.dat')
+  } = world.watcher.makeApi('*/playerdata/*.dat');
 
   const {
     fileDetected: playerStatsFileDetected,
     fileChanged: playerStatsFileChanged,
     fileDeleted: playerStatsFileDeleted,
     fileCreated: playerStatsFileCreated,
-  } = world.watcher.makeApi('*/stats/*.json')
+  } = world.watcher.makeApi('*/stats/*.json');
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const applyPlayersLogic = (_world: SculkWorld) => {
@@ -141,9 +154,9 @@ export const usePlayersModule = (world: SculkWorld): PlayersModule => {
     });
     forward({ from: readPlayerStatsFx.done, to: playerStatsLoaded });
     forward({ from: playerStatsLoaded, to: playerUpdated });
-  }
+  };
 
-  const applyPlayersLogicFx = createEffect(applyPlayersLogic)
+  const applyPlayersLogicFx = createEffect(applyPlayersLogic);
 
   return {
     $players,

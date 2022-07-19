@@ -17,13 +17,15 @@ export type LogsModule = {
   readonly followLogsFileFx: Effect<FileEvent, FileContentsWatcher>;
   readonly reportLoggedLinesFx: Effect<FileContentsWatcher, void>;
   readonly extractServerLogFx: Effect<string, ServerLog>;
-  readonly applyLogsLogicFx: Effect<SculkWorld, void>
+  readonly applyLogsLogicFx: Effect<SculkWorld, void>;
 };
 
-export const useLogsModule = ({ watcher: { fileDetected } }: SculkWorld): LogsModule => {
-  const logsFileDetected = fileDetected.filter({ fn: isLatestLogFile })
-  const lineAdded = createEvent<string>()
-  const serverLogged = createEvent<ServerLog>()
+export const useLogsModule = ({
+  watcher: { fileDetected },
+}: SculkWorld): LogsModule => {
+  const logsFileDetected = fileDetected.filter({ fn: isLatestLogFile });
+  const lineAdded = createEvent<string>();
+  const serverLogged = createEvent<ServerLog>();
 
   const followLogsFileFx = createEffect(({ fullPath }: FileEvent) =>
     createFileContentsWatcher(fullPath)
@@ -42,9 +44,9 @@ export const useLogsModule = ({ watcher: { fileDetected } }: SculkWorld): LogsMo
     forward({ from: followLogsFileFx.doneData, to: reportLoggedLinesFx });
     forward({ from: lineAdded, to: extractServerLogFx });
     forward({ from: extractServerLogFx.doneData, to: serverLogged });
-  }
+  };
 
-  const applyLogsLogicFx = createEffect(applyLogsLogic)
+  const applyLogsLogicFx = createEffect(applyLogsLogic);
 
   return {
     logsFileDetected,
