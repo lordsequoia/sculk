@@ -1,19 +1,20 @@
-/* eslint-disable functional/immutable-data */
 /* eslint-disable functional/prefer-readonly-type */
-import { parse } from 'node:path';
 
-import { createApi, createStore, Effect, Event, Store } from 'effector';
+import { createApi, createStore, Effect, Event, forward, Store } from 'effector';
 import { createEffect } from 'effector';
 import { Except } from 'type-fest';
 
 import {
   FileEvent,
-  FileWatcher,
-  FileWatcherApi,
+  playerAddedReducer,
+  playerDataLoadedReducer,
+  playerRemovedReducer,
+  playerStatsLoadedReducer,
+  playerUpdatedReducer,
+  playerUserLoadedReducer,
   readPlayerDataFile,
   readPlayerStatsFile,
   SculkWorld,
-  stripUuid,
 } from '..';
 
 export type Player = {
@@ -35,8 +36,6 @@ export type PlayerData = {
 
 export type PlayerStats = Record<string, Record<string, number>>;
 
-export type PlayersStore = Store<Player[]>;
-
 export type PlayerDataLoadedDone = {
   params: FileEvent;
   result: Except<Player, 'stats' | 'user'>;
@@ -51,23 +50,38 @@ export type PlayerUserLoadedDone = {
   result: Except<Player, 'data' | 'stats'>;
 };
 
-export type PlayersStoreEvents = {
-  playerAdded: Event<Player>;
-  playerUpdated: Event<
+export type PlayersModule = {
+  readonly $players: Store<Player[]>;
+  readonly playerAdded: Event<Player>;
+  readonly playerUpdated: Event<
     PlayerDataLoadedDone | PlayerStatsLoadedDone | PlayerUserLoadedDone
   >;
-  playerRemoved: Event<FileEvent>;
-  playerUserLoaded: Event<PlayerUserLoadedDone>;
-  playerDataLoaded: Event<PlayerDataLoadedDone>;
-  playerStatsLoaded: Event<PlayerStatsLoadedDone>;
-};
+  readonly playerRemoved: Event<FileEvent>;
+  readonly playerUserLoaded: Event<PlayerUserLoadedDone>;
+  readonly playerDataLoaded: Event<PlayerDataLoadedDone>;
+  readonly playerStatsLoaded: Event<PlayerStatsLoadedDone>;
+  readonly readPlayerDataFx: Effect<FileEvent, Except<Player, 'stats' | 'user'>>;
+  readonly readPlayerStatsFx: Effect<FileEvent, Except<Player, 'data' | 'user'>>;
 
-export const createPlayersStore = (initialState?: Player[]): PlayersStore =>
-  createStore<Player[]>(initialState || ([] as Player[]));
+  readonly playerDataFileDetected: Event<FileEvent>
+  readonly playerDataFileCreated: Event<FileEvent>
+  readonly playerDataFileChanged: Event<FileEvent>
+  readonly playerDataFileDeleted: Event<FileEvent>
 
-export const createPlayersStoreApi = (
-  playersStore: PlayersStore
-): PlayersStoreEvents => {
+  readonly playerStatsFileDetected: Event<FileEvent>
+  readonly playerStatsFileCreated: Event<FileEvent>
+  readonly playerStatsFileChanged: Event<FileEvent>
+  readonly playerStatsFileDeleted: Event<FileEvent>
+
+  readonly applyPlayersLogicFx: Effect<SculkWorld, void>
+}
+
+export const usePlayersModule = (world: SculkWorld): PlayersModule => {
+  const $players = createStore<Player[]>([] as Player[]);
+
+  const readPlayerDataFx = createEffect(readPlayerDataFile);
+  const readPlayerStatsFx = createEffect(readPlayerStatsFile);
+
   const {
     playerAdded,
     playerUpdated,
@@ -75,111 +89,80 @@ export const createPlayersStoreApi = (
     playerUserLoaded,
     playerDataLoaded,
     playerStatsLoaded,
-  } = createApi(playersStore, {
-    playerAdded: (state, payload) => [...state, payload],
-    playerUpdated: (
-      state,
-      payload: PlayerDataLoadedDone | PlayerStatsLoadedDone
-    ) =>
-      state.map((v) =>
-        parse(payload.params.path).name !== v.id
-          ? v
-          : (Object.assign(v, payload.result) as Player)
-      ),
-    playerRemoved: (state, { path }: FileEvent) =>
-      state.filter((v) => v.id !== stripUuid(path)),
-    playerDataLoaded: (
-      state,
-      { params: { path }, result: { data } }: PlayerDataLoadedDone
-    ) =>
-      state.find((v) => v.id === parse(path).name) === undefined
-        ? [...state, { id: parse(path).name, data }]
-        : state.map((v) =>
-            v.id !== parse(path).name ? v : Object.assign(v, { data })
-          ),
-    playerStatsLoaded: (
-      state,
-      { params: { path }, result: { stats } }: PlayerStatsLoadedDone
-    ) =>
-      state.find((v) => v.id === parse(path).name) === undefined
-        ? [...state, { id: parse(path).name, stats }]
-        : state.map((v) =>
-            v.id !== parse(path).name ? v : Object.assign(v, { stats })
-          ),
-    playerUserLoaded: (
-      state,
-      { params: { path }, result: { user } }: PlayerUserLoadedDone
-    ) =>
-      state.find((v) => v.id === parse(path).name) === undefined
-        ? [...state, { id: parse(path).name, user }]
-        : state.map((v) =>
-            v.id !== parse(path).name ? v : Object.assign(v, { user })
-          ),
+  } = createApi($players, {
+    playerAdded: playerAddedReducer,
+    playerUpdated: playerUpdatedReducer,
+    playerRemoved: playerRemovedReducer,
+    playerDataLoaded: playerDataLoadedReducer,
+    playerStatsLoaded: playerStatsLoadedReducer,
+    playerUserLoaded: playerUserLoadedReducer,
   });
 
+  const {
+    fileDetected: playerDataFileDetected,
+    fileChanged: playerDataFileChanged,
+    fileDeleted: playerDataFileDeleted,
+    fileCreated: playerDataFileCreated,
+  } = world.watcher.makeApi('*/playerdata/*.dat')
+
+  const {
+    fileDetected: playerStatsFileDetected,
+    fileChanged: playerStatsFileChanged,
+    fileDeleted: playerStatsFileDeleted,
+    fileCreated: playerStatsFileCreated,
+  } = world.watcher.makeApi('*/stats/*.json')
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const applyPlayersLogic = (_world: SculkWorld) => {
+    forward({ from: playerUserLoaded, to: playerUpdated });
+
+    // forward player data updates
+    forward({ from: playerDataFileDeleted, to: playerRemoved });
+    forward({
+      from: [
+        playerDataFileDetected,
+        playerDataFileCreated,
+        playerDataFileChanged,
+      ],
+      to: readPlayerDataFx,
+    });
+    forward({ from: readPlayerDataFx.done, to: playerDataLoaded });
+    forward({ from: playerDataLoaded, to: playerUpdated });
+
+    // forward player stats updates
+    forward({ from: playerStatsFileDeleted, to: playerRemoved });
+    forward({
+      from: [
+        playerStatsFileDetected,
+        playerStatsFileChanged,
+        playerStatsFileCreated,
+      ],
+      to: readPlayerStatsFx,
+    });
+    forward({ from: readPlayerStatsFx.done, to: playerStatsLoaded });
+    forward({ from: playerStatsLoaded, to: playerUpdated });
+  }
+
+  const applyPlayersLogicFx = createEffect(applyPlayersLogic)
+
   return {
+    $players,
     playerAdded,
     playerUpdated,
     playerRemoved,
     playerUserLoaded,
     playerDataLoaded,
     playerStatsLoaded,
-  };
-};
-
-export const createPlayerDataFileWatcher = ({
-  makeApi,
-}: {
-  makeApi: FileWatcher['makeApi'];
-}) => makeApi('*/playerdata/*.dat');
-
-export const createPlayerStatsFileWatcher = ({
-  makeApi,
-}: {
-  makeApi: FileWatcher['makeApi'];
-}) => makeApi('*/stats/*.json');
-
-export type PlayersModule = {
-  readonly $players: PlayersStore;
-  readonly playerStoreEvents: PlayersStoreEvents;
-  readonly playerDataFileEvents: FileWatcherApi;
-  readonly playerStatsFileEvents: FileWatcherApi;
-  readonly playersEffects: PlayersEffects;
-};
-
-export type PlayersEffects = {
-  readPlayerDataFx: Effect<FileEvent, Except<Player, 'stats' | 'user'>>;
-  readPlayerStatsFx: Effect<FileEvent, Except<Player, 'data' | 'user'>>;
-};
-
-export const createPlayersEffects = (): PlayersEffects => {
-  const readPlayerDataFx = createEffect(readPlayerDataFile);
-  const readPlayerStatsFx = createEffect(readPlayerStatsFile);
-
-  return {
     readPlayerDataFx,
     readPlayerStatsFx,
-  };
-};
-
-export type PlayersModuleOpts = {
-  watcher: SculkWorld['watcher'];
-};
-
-export const usePlayersModule = ({
-  watcher,
-}: PlayersModuleOpts): PlayersModule => {
-  const $players = createPlayersStore();
-  const playerStoreEvents = createPlayersStoreApi($players);
-  const playerDataFileEvents = createPlayerDataFileWatcher(watcher);
-  const playerStatsFileEvents = createPlayerStatsFileWatcher(watcher);
-  const playersEffects = createPlayersEffects();
-
-  return {
-    $players,
-    playerStoreEvents,
-    playerDataFileEvents,
-    playerStatsFileEvents,
-    playersEffects,
+    playerDataFileDetected,
+    playerDataFileCreated,
+    playerDataFileChanged,
+    playerDataFileDeleted,
+    playerStatsFileDetected,
+    playerStatsFileChanged,
+    playerStatsFileDeleted,
+    playerStatsFileCreated,
+    applyPlayersLogicFx,
   };
 };

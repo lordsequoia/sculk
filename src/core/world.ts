@@ -6,19 +6,11 @@ import { homedir } from 'os';
 
 import { existsSync, mkdirSync } from 'fs-extra';
 
-import { createIncidentsLogicWorker, createLogsLogicWorker } from '..';
-import { Worker } from '../helpers';
 import { createFileWatcher, FileWatcher } from '../helpers/files';
-import {
-  MirrorUpdatesSynchronized,
-  SynchronizeMirrorUpdates,
-} from '../helpers/mirrors';
-import { LogsModule } from '../modules';
+import { LogsModule, MirrorModule, useMirrorModule } from '../modules';
 import { IncidentsModule, useIncidentsModule } from '../modules/incidents';
 import { useLogsModule } from '../modules/logs';
 import { PlayersModule, usePlayersModule } from '../modules/players';
-import { createMirrorSyncWorker } from '../workers/mirrorSyncWorker';
-import { createPlayersLogicWorker } from '../workers/playersLogicWorker';
 
 import logger from './logger';
 
@@ -33,11 +25,7 @@ export class SculkWorld {
   public readonly rootDir: string;
   public readonly watcher: FileWatcher;
   public readonly logic: unknown;
-  public readonly mirror: Worker<
-    SynchronizeMirrorUpdates,
-    MirrorUpdatesSynchronized
-  >;
-
+  public readonly mirror: MirrorModule
   public readonly players: PlayersModule;
   public readonly logs: LogsModule;
   public readonly incidents: IncidentsModule;
@@ -51,8 +39,7 @@ export class SculkWorld {
     }
 
     this.watcher = createFileWatcher(this.rootDir, '.');
-    this.mirror = createMirrorSyncWorker(remote, this.rootDir);
-
+    this.mirror = useMirrorModule(remote, this.rootDir);
     this.players = usePlayersModule(this);
     this.logs = useLogsModule(this);
     this.incidents = useIncidentsModule();
@@ -62,9 +49,10 @@ export class SculkWorld {
 
   start() {
     logger.info(`starting sculk for world: ${this.rootDir}`);
-    const playersWorker = createPlayersLogicWorker(this);
-    const logsWorker = createLogsLogicWorker(this);
-    const incidentsWorker = createIncidentsLogicWorker(this);
-    return { playersWorker, logsWorker, incidentsWorker };
+
+    this.mirror.applyMirrorLogicFx(this)
+    this.players.applyPlayersLogicFx(this)
+    this.logs.applyLogsLogicFx(this)
+    this.incidents.applyIncidentsLogicFx(this)
   }
 }

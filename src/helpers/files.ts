@@ -96,12 +96,12 @@ export const createFileWatcher = (
   const trigger = fromEvent(watcher, 'all').pipe(
     map(
       ([eventName, path, stats]) =>
-        ({
-          eventName,
-          path,
-          stats,
-          wasReady: $ready.getState() === true,
-        } as ChokidarEvent)
+      ({
+        eventName,
+        path,
+        stats,
+        wasReady: $ready.getState() === true,
+      } as ChokidarEvent)
     ),
     map((v) => Object.assign(v, { fullPath: join(rootDir, v.path) }))
   );
@@ -162,6 +162,8 @@ export const createFileContentsWatcher = (
 
   const linesSource = new Subject<string>();
   const lineAdded = fromObservable<string>(linesSource);
+
+  lineAdded.watch(v => logger.info(`[TAIL] --> ${v}`))
 
   const tailer = new Tail(fullPath);
   tailer.on('line', (line) => linesSource.next(line));
