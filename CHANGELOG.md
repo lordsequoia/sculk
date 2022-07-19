@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/lordsequoia/sculk-js/compare/v1.1.1...v1.2.0) (2022-07-19)
+
+
+### Features
+
+* server logs and server incidents #wip ([fe52ffe](https://github.com/lordsequoia/sculk-js/commit/fe52ffea6b1e98494343397d35a93e1a67b4d956))
+
+
+### Bug Fixes
+
+* fix wrong build imports ([7bc16e6](https://github.com/lordsequoia/sculk-js/commit/7bc16e62d4aa22773b484d4e01dbf335691af21a))
+
 ### [1.1.1](https://github.com/lordsequoia/sculk-js/compare/v1.1.0...v1.1.1) (2022-07-19)
 
 
