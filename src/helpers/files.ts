@@ -1,3 +1,4 @@
+/* eslint-disable functional/no-mixed-type */
 /* eslint-disable functional/no-return-void */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/prefer-readonly-type */
@@ -11,11 +12,11 @@ import { Stats } from 'fs-extra';
 import { isMatch } from 'micromatch';
 import { splitMap } from 'patronum';
 import * as nbt from 'prismarine-nbt';
-import { fromEvent, map, Subject } from 'rxjs';
+import { fromEvent, map, Observable, Subject } from 'rxjs';
 import { Tail } from 'tail';
 import { Except } from 'type-fest';
 
-import { Player, PlayerData, PlayerStats } from '../modules/players';
+import { logger, Player, PlayerData, PlayerStats } from '..';
 
 export type FileEvent = {
   path: FileWatcherEvent['filePath'];
@@ -147,18 +148,33 @@ export const createFileWatcher = (
   };
 };
 
-export const createFileContentsWatcher = (rootDir: string, path: string) => {
-  const tailer = new Tail(join(rootDir, path));
+export type FileContentsWatcher = {
+  fullPath: string;
+  linesSource: Observable<string>;
+  lineAdded: Event<string>;
+  stopWatching: () => void;
+};
 
-  const subject = new Subject();
-  tailer.on('line', subject.next);
-  tailer.on('error', subject.error);
+export const createFileContentsWatcher = (
+  fullPath: string
+): FileContentsWatcher => {
+  logger.info(`[TAIL] ${fullPath}`);
 
-  const lineAdded = fromObservable<string>(subject);
+  const linesSource = new Subject<string>();
+  const lineAdded = fromObservable<string>(linesSource);
 
-  const stopWatching = () => tailer.unwatch();
+  const tailer = new Tail(fullPath);
+  tailer.on('line', (line) => linesSource.next(line));
+  tailer.on('error', (error) => linesSource.error(error));
+
+  const stopWatching = () => {
+    tailer.unwatch();
+    linesSource.complete();
+  };
 
   return {
+    fullPath,
+    linesSource,
     lineAdded,
     stopWatching,
   };
