@@ -1,6 +1,6 @@
 {
   "name": "sculk-js",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Minecraft World SDK",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
