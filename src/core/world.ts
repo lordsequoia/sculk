@@ -44,6 +44,8 @@ export class SculkWorld {
     this.logs = useLogsModule(this);
     this.incidents = useIncidentsModule();
 
+    logger.info(`[SCULK] cwd=${this.rootDir} remote=${remote}`)
+
     this.logic = attachLogic(this);
   }
 

@@ -39,15 +39,10 @@ const createLogicAttacher = () => function (world: SculkWorld): void {
 }
 
 export const startExample = () => {
-    //const rootDir = join(process.cwd(), 'tmp')
-    //const logsDir = join(rootDir, 'logs')
-    //mkdirSync(logsDir, { recursive: true })
-
     const worldOpts: SculkWorldOpts = {
-        projectName: 'example-seqcraft',
+        projectName: 'example-world',
         attachLogic: createLogicAttacher(),
-        remote: 'fx4:/opt/seqcraft/worlds/play/world_data/',
-        // remote: rootDir + '/',
+        remote: process.argv[2],
     }
     const world = sculk(worldOpts)
 
