@@ -17,7 +17,14 @@ import { createPlayersLogicWorker } from '../workers/playersLogicWorker';
 
 import logger from './logger';
 
-export class MinecraftWorld {
+export type SculkWorldOpts = {
+  readonly cwd?: string;
+  readonly projectName?: string;
+  readonly remote: string;
+  readonly attachLogic: (world: SculkWorld) => unknown;
+}
+
+export class SculkWorld {
   public readonly rootDir: string;
   public readonly watcher: FileWatcher;
   public readonly logic: unknown;
@@ -33,12 +40,7 @@ export class MinecraftWorld {
     projectName,
     remote,
     attachLogic,
-  }: {
-    readonly cwd?: string;
-    readonly projectName?: string;
-    readonly remote: string;
-    readonly attachLogic: (world: MinecraftWorld) => unknown;
-  }) {
+  }: SculkWorldOpts) {
     this.rootDir =
       cwd || resolve(join(homedir(), '.sculk', projectName || 'default'));
 
