@@ -18,12 +18,15 @@
     "libauth",
     "Minecraft",
     "mkdir",
+    "patronum",
     "playerdata",
     "prettierignore",
+    "prismarine",
     "sandboxed",
     "transpiled",
     "typedoc",
-    "untracked"
+    "untracked",
+    "usercache"
   ],
   "flagWords": [],
   "ignorePaths": [

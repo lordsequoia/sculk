@@ -69,8 +69,6 @@ export const synchronizeMirror = async ({
         '**/template/',
         '**/.fabric/',
         '**/libraries/',
-        'dynmap/',
-        'bluemap_config/',
       ]
     );
 
