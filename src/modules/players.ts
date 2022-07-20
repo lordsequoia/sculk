@@ -61,7 +61,7 @@ export type PlayerUserLoadedDone = {
 
 export type PlayersModule = {
   readonly $players: Store<Player[]>;
-  readonly players$: Replica<Player[]>;
+  readonly players$: Replica<Record<string, Player>>;
   readonly playerAdded: Event<Player>;
   readonly playerUpdated: Event<
     PlayerDataLoadedDone | PlayerStatsLoadedDone | PlayerUserLoadedDone
