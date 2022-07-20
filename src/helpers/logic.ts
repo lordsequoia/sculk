@@ -84,7 +84,7 @@ export const replica$ = <T>(initialState: Replicatable<T>): Replica<T> => {
 
   patchState.watch(v => logger.info(`[PATCH/${v.type}] ${v.path.join(':')} = ${v.value} (old: ${v.oldValue})`))
 
-  $state.watch(v => logger.info(`[STATE] ${JSON.stringify(v)}`))
+  // $state.watch(v => logger.info(`[STATE] ${JSON.stringify(v)}`))
 
   return { $state, updateState, patchState }
 }

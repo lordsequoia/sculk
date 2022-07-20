@@ -21,6 +21,8 @@ import {
   playerUserLoadedReducer,
   readPlayerDataFile,
   readPlayerStatsFile,
+  Replica,
+  replica$,
   SculkWorld,
 } from '..';
 
@@ -59,6 +61,7 @@ export type PlayerUserLoadedDone = {
 
 export type PlayersModule = {
   readonly $players: Store<Player[]>;
+  readonly players$: Replica<Player[]>;
   readonly playerAdded: Event<Player>;
   readonly playerUpdated: Event<
     PlayerDataLoadedDone | PlayerStatsLoadedDone | PlayerUserLoadedDone
@@ -91,6 +94,17 @@ export type PlayersModule = {
 
 export const usePlayersModule = (world: SculkWorld): PlayersModule => {
   const $players = createStore<Player[]>([] as Player[]);
+  const players$ = replica$<Record<string, Player>>({} as Record<string, Player>)
+
+  $players.watch(v => {
+    const newState = {} as Record<string, Player>
+
+    for (const item of v) {
+      newState[item.id] = item
+    }
+
+    players$.updateState(newState)
+  })
 
   const readPlayerDataFx = createEffect(readPlayerDataFile);
   const readPlayerStatsFx = createEffect(readPlayerStatsFile);
@@ -160,6 +174,7 @@ export const usePlayersModule = (world: SculkWorld): PlayersModule => {
 
   return {
     $players,
+    players$,
     playerAdded,
     playerUpdated,
     playerRemoved,
