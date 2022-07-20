@@ -1,5 +1,5 @@
 /* eslint-disable functional/no-return-void */
-import { createApi, createEffect, createEvent, createStore, Event, forward, guard, Store } from 'effector';
+import { createEffect, createEvent, createStore, Event, forward, guard, Store } from 'effector';
 import diff from 'microdiff'
 import { logger } from '../core';
 
@@ -45,17 +45,23 @@ export const applyPatch = <T>(original: Replicatable<T>, { path, type, value }: 
 export const replica$ = <T>(initialState: Replicatable<T>): Replica<T> => {
   const updateState = createEvent<Replicatable<T>>()
   const patchState = createEvent<Mutation<T>>()
+  const setState = createEvent<Replicatable<T>>()
 
   const $state = createStore(initialState || {} as Replicatable<T>)
-    .on(patchState, (state, patch) => applyPatch(state, patch))
+    .on(setState, (_state, newState) => newState)
+  //.on(patchState, (state, patch) => applyPatch(state, patch))
 
-  const extractPatchesFx = createEffect<{ oldState: Replicatable<T>, newState: Replicatable<T> }, Mutation[]>(({ newState, oldState }) => {
-    const patches = diff(newState, oldState)
+  const invalidateStateFx = createEffect(({ params: { newState } }: { params: { oldState: Replicatable<T>, newState: Replicatable<T> }, result: Mutation<T>[] }) => {
+    setState(newState)
+  })
 
-    for (const patch of patches) {
+  const broadcastPatchesFx = createEffect(({ result }: { params: { oldState: Replicatable<T>, newState: Replicatable<T> }, result: Mutation<T>[] }) => {
+    for (const patch of result) {
       patchState(patch)
     }
   })
+
+  const extractPatchesFx = createEffect(({ newState, oldState }: { oldState: Replicatable<T>, newState: Replicatable<T> }): Mutation<T>[] => diff(oldState, newState))
 
   const stateChangedFx = createEffect<Replicatable<T>, { oldState: Replicatable<T>, newState: Replicatable<T> }>(
     (newState: Replicatable<T>) => {
@@ -72,9 +78,13 @@ export const replica$ = <T>(initialState: Replicatable<T>): Replica<T> => {
     target: stateChangedFx,
   })
 
-  forward({ from: stateChangedFx, to: extractPatchesFx })
+  forward({ from: stateChangedFx.doneData, to: extractPatchesFx })
+  forward({ from: extractPatchesFx.done, to: invalidateStateFx })
+  forward({ from: extractPatchesFx.done, to: broadcastPatchesFx })
 
   patchState.watch(v => logger.info(`[PATCH/${v.type}] ${v.path.join(':')} = ${v.value} (old: ${v.oldValue})`))
+
+  $state.watch(v => logger.info(`[STATE] ${JSON.stringify(v)}`))
 
   return { $state, updateState, patchState }
 }
